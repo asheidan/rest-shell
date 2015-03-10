@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
 
 
+function help() {
+	cat <<EOF
+Help for rest-shell
+
+Commands:
+   accept   Sets the Accept-header for all calls
+   proto    Sets the protocol used for calls
+   user     Sets or removes user used for basic authentication
+   pass     Sets or removes user used for basic authentication
+   get      Perform a GET with the current settings, also possible
+            to give path as parameter
+   rcd      Change the uri
+   delete   Perform a DELETE request
+   post     Perform a POST request
+   put      Perform a PUT request
+   pretty   Formats data read on stdin according to the current accept
+            headers set
+EOF
+}
+typeset -fx help
+
+
 export REST_PROTO=${REST_PROTO:-"http"}
 function proto() { REST_PROTO="${1}"; }
 typeset -fx proto
@@ -77,6 +99,20 @@ function get() {
 }
 typeset -fx get
 
+function put() {
+	_curl -XPUT $*
+}
+typeset -fx put
+
+function post() {
+	_curl -XPOST $*
+}
+typeset -fx post
+
+function delete() {
+	_curl -XDELETE $*
+}
+typeset -fx delete
 
 function prompt() {
 	if [[ "${REST_USER}" ]]; then
