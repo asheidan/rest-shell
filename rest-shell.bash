@@ -65,7 +65,9 @@ function _curl() {
 		rest_accept="-HAccept: ${REST_ACCEPT}"
 	fi
 	
-	curl "${rest_auth}" "${rest_method}" "${rest_accept}" "${rest_url}"
+	command=(curl "${rest_auth}" "${rest_method}" "${rest_accept}" "${rest_url}")
+	echo "${command[@]}" >&2
+	"${command[@]}"
 	echo
 }
 ${rest_method} typeset -fx _curl
