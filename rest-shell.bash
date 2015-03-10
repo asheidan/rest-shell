@@ -34,11 +34,23 @@ function accept() {
 }
 typeset -fx accept
 
+function pretty() {
+	case "${REST_ACCEPT}" in
+		"application/json" )
+			python -m json.tool ;;
+		"application/xml" )
+			xmllint -format - ;;
+		* )
+			cat ;;
+	esac
+}
+typeset -fx pretty
+
 function _curl() {
-	rest_method="${1} ${2}"
-	shift 2
+	rest_method="${1}"
+	shift
 	if [[ "${REST_USER}" ]]; then
-		rest_auth="-u ${REST_USER}"
+		rest_auth="-u${REST_USER}"
 	fi
 	if [[ "${REST_PASS}" ]]; then
 		rest_auth="${rest_auth}:${REST_PASS}"
@@ -50,17 +62,16 @@ function _curl() {
 	fi
 
 	if [[ "${REST_ACCEPT}" ]]; then
-		rest_accept="-H 'Accept: ${REST_ACCEPT}'"
+		rest_accept="-HAccept: ${REST_ACCEPT}"
 	fi
 	
-	curl_command="curl ${rest_auth} ${rest_method} ${rest_accept} ${rest_url}"
-	echo "${curl_command}"
-	${curl_command}
+	curl "${rest_auth}" "${rest_method}" "${rest_accept}" "${rest_url}"
+	echo
 }
-typeset -fx _curl
+${rest_method} typeset -fx _curl
 
 function get() {
-	_curl -X GET $*
+	_curl -XGET $*
 }
 typeset -fx get
 
