@@ -73,6 +73,19 @@ function accept() {
 }
 typeset -fx accept
 
+export REST_VERBOSE=${REST_VERBOSE:-0}
+function verbose() {
+	if [[ 1 -eq ${REST_VERBOSE} ]]; then
+		echo "Resetting verbosity level" >&2
+		REST_VERBOSE=0
+	else
+		REST_VERBOSE=$((REST_VERBOSE+1))
+		echo "Increasing verbosity level to ${REST_VERBOSE}" >&2
+	fi
+}
+typeset -fx verbose
+		
+
 function pretty() {
 	case "${REST_ACCEPT}" in
 		"application/json" )
