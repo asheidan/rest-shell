@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
 
+if [[ $_ != $0 ]]; then
+	echo "Setting up variables for resting"
+	script_sourced=1
+else
+	echo "Launching rest-shell"
+	REST_SCRIPT="${0}"
+	if [[ "${REST_SCRIPT}" != /* ]]; then
+		REST_SCRIPT="$(pwd)/${REST_SCRIPT}"
+	fi
+fi
+export REST_SCRIPT
+
+function _reload() {
+	source "${REST_SCRIPT}"
+}
+typeset -fx _reload
+
 
 function help() {
 	cat <<EOF
@@ -134,4 +151,5 @@ typeset -fx _pg
 
 export PS1="\[\e[45m\]$(_pg '' '$(prompt)')$(_pg 'A:' \${REST_ACCEPT})    $(_pg '' '\w')\[\e[0m\]\n"
 
-exec bash
+# Should we launch bash?
+[[ -z "${script_sourced}" ]] && exec bash
