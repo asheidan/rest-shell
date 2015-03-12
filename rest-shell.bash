@@ -48,10 +48,10 @@ export REST_HOST=${REST_HOST:-"localhost"}
 function host() { REST_HOST="${1}"; }
 typeset -fx host
 
-export REST_USER
+export REST_USER=${REST_USER}
 function user() { REST_USER="${1}"; }
 typeset -fx user
-export REST_PASS
+export REST_PASS=${REST_PASS}
 function pass() { REST_PASS="${1}"; }
 typeset -fx pass
 
@@ -66,7 +66,7 @@ function rcd() {
 }
 typeset -fx rcd
 
-export REST_ACCEPT
+export REST_ACCEPT=${REST_ACCEPT}
 function accept() {
 	local IFS=";"
 	REST_ACCEPT="$*"
@@ -86,8 +86,31 @@ function pretty() {
 typeset -fx pretty
 
 function _curl() {
-	rest_method="${1}"
-	shift
+	local OPTIND opt headers method command
+	declare -a headers=()
+	declare -a command=(curl)
+
+	while getopts ":H:X:" opt; do
+		case "${opt}" in
+			"H")
+				headers+=(-H ${OPTARG})
+				;;
+			"X")
+				echo "Method: '${OPTARG}'" >&2
+				method=$OPTARG
+				;;
+			"?")
+				echo "Invalid option: -${OPTARG}." >&2
+				return
+				;;
+			":")
+				echo "Option -$OPTARG requires an argument." >&2
+				return
+				;;
+		esac
+	done
+	shift $((OPTIND-1))
+	
 	if [[ "${REST_USER}" ]]; then
 		rest_auth="-u${REST_USER}"
 	fi
@@ -101,33 +124,37 @@ function _curl() {
 	fi
 
 	if [[ "${REST_ACCEPT}" ]]; then
-		rest_accept="-HAccept: ${REST_ACCEPT}"
+		headers+=("-H" "Accept: ${REST_ACCEPT}")
+	fi
+
+	if [[ 1 -le ${REST_VERBOSE} ]]; then
+		command+=(-v)
 	fi
 	
-	command=(curl "${rest_auth}" "${rest_method}" "${rest_accept}" "${rest_url}")
+	command+=("${rest_auth}" -X "${method}" "${headers[@]}" "${rest_url}")
 	echo "${command[@]}" >&2
 	"${command[@]}"
 	echo
 }
-${rest_method} typeset -fx _curl
+typeset -fx _curl
 
 function get() {
-	_curl -XGET $*
+	_curl -X GET $*
 }
 typeset -fx get
 
 function put() {
-	_curl -XPUT $*
+	_curl -X PUT $*
 }
 typeset -fx put
 
 function post() {
-	_curl -XPOST $*
+	_curl -X POST $*
 }
 typeset -fx post
 
 function delete() {
-	_curl -XDELETE $*
+	_curl -X DELETE $*
 }
 typeset -fx delete
 
@@ -142,7 +169,7 @@ function prompt() {
 }
 typeset -fx prompt
 
-function _pg(){
+function _pg() {
 	first="${1}"
 	shift
 	echo '\[\e\e[1;35m\]['"${first}"'\[\e[1;37m\]'"${*}"'\[\e[1;35m\]]'
