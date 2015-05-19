@@ -84,7 +84,19 @@ function verbose() {
 	fi
 }
 typeset -fx verbose
-		
+
+export REST_INSECURE=${REST_INSECURE:-1}
+function insecure() {
+	if [[ 1 -eq ${REST_INSECURE} ]]; then
+		echo "Verify certificates" >&2
+		REST_INSECURE=0
+	else
+		REST_INSECURE=$((REST_INSECURE+1))
+		echo "Do not verify certificates" >&2
+	fi
+}
+typeset -fx insecure
+
 
 function pretty() {
 	case "${REST_ACCEPT}" in
@@ -143,6 +155,10 @@ function _curl() {
 	if [[ 1 -le ${REST_VERBOSE} ]]; then
 		command+=(-v)
 	fi
+
+	if [[ 1 -le ${REST_INSECURE} ]]; then
+		command+=(-k)
+	fi
 	
 	command+=("${rest_auth}" -X "${method}" "${headers[@]}" "${rest_url}")
 	echo "${command[@]}" >&2
@@ -189,7 +205,7 @@ function _pg() {
 }
 typeset -fx _pg
 
-export PS1="\[\e[45m\]$(_pg '' '$(prompt)')$(_pg 'A:' \${REST_ACCEPT})    $(_pg '' '\w')\[\e[0m\]\n"
+export PS1="\[\e[45m\]$(_pg '' '$(prompt)')$(_pg 'A:' \${REST_ACCEPT})$(_pg 'C:' \${REST_CONTENT})    $(_pg '' '\w')\[\e[0m\]\n"
 
 # Should we launch bash?
 [[ -z "${script_sourced}" ]] && exec bash
