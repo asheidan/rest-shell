@@ -24,6 +24,7 @@ Help for rest-shell
 
 Commands:
    accept   Sets the Accept-header for all calls
+   content  Set the content-tpye header for all calls
    proto    Sets the protocol used for calls
    user     Sets or removes user used for basic authentication
    pass     Sets or removes user used for basic authentication
@@ -35,6 +36,7 @@ Commands:
    put      Perform a PUT request
    pretty   Formats data read on stdin according to the current accept
             headers set
+   insecure Toggle the checking of certificates
 EOF
 }
 typeset -fx help
