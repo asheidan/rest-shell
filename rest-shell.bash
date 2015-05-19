@@ -73,6 +73,13 @@ function accept() {
 }
 typeset -fx accept
 
+export REST_CONTENT=${REST_CONTENT}
+function content() {
+	local IFS=";"
+	REST_CONTENT="$*"
+}
+typeset -fx content
+
 export REST_VERBOSE=${REST_VERBOSE:-0}
 function verbose() {
 	if [[ 1 -eq ${REST_VERBOSE} ]]; then
@@ -115,8 +122,11 @@ function _curl() {
 	declare -a headers=()
 	declare -a command=(curl)
 
-	while getopts ":H:X:" opt; do
+	while getopts ":F:H:X:" opt; do
 		case "${opt}" in
+			"F")
+				data_file="${OPTARG}"
+				;;
 			"H")
 				headers+=(-H ${OPTARG})
 				;;
@@ -152,12 +162,20 @@ function _curl() {
 		headers+=("-H" "Accept: ${REST_ACCEPT}")
 	fi
 
+	if [[ "${REST_CONTENT}" ]]; then
+		headers+=("-H" "Content-type: ${REST_CONTENT}")
+	fi
+
 	if [[ 1 -le ${REST_VERBOSE} ]]; then
 		command+=(-v)
 	fi
 
 	if [[ 1 -le ${REST_INSECURE} ]]; then
 		command+=(-k)
+	fi
+
+	if [[ "${data_file}" ]]; then
+		command+=("--data-binary" "@${data_file}")
 	fi
 	
 	command+=("${rest_auth}" -X "${method}" "${headers[@]}" "${rest_url}")
